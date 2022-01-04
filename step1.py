@@ -42,7 +42,7 @@ if(re.search('.tex$',args.filename)==None):
 
 print('LaTeX file:',args.filename)
 
-with open(args.filename, 'r') as source_file:
+with open(args.filename, 'r', encoding="utf8") as source_file:
     source = source_file.read()
 
 ### Search for possible token conflicts
