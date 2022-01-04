@@ -1,56 +1,49 @@
 # gtexfix
 
 Fix for Google Translate to process LaTeX documents.
+Updated to simplify some steps. 
 
 **Description**
 
-Code ``to.py`` replaces the LaTeX constructs by tokens. After passing translation the tokens are then restored by ``from.py``. Simple tokens 
-of the type ``[number.number]`` are used, which are more friendly to Google Translate. If the token type conflicts with the original text the user is notified. At times, Google Translate will corrupt the tokens and may even change their numbers unpreditably (the side effect of machine learning!). Corrupted tokens are identified and reported to the user for manual treatment.
+Code ``step1.py`` replaces the LaTeX constructs by tokens. After passing translation the tokens are then restored by ``step2.py``. Simple tokens 
+of the type ``[number.number]`` are used, which are more friendly to Google Translate (or DeepL). If the token type conflicts with the original text the user is notified. At times, Google Translate will corrupt the tokens and may even change their numbers unpreditably (the side effect of machine learning!). Corrupted tokens are identified and reported to the user for manual treatment.
 
 **Usage**
 
-1. Run ``$./to.py <source.tex>`` to produce ``<source_*.txt>``. Several files are produced if the output exceeds the Google Translate character limit.
+1. Run ``$./step1.py path/source.tex`` to produce ``path/source_XX.txt``, where ``XX`` is ``00,01,...``. Several files are produced if the output exceeds the Google Translate character limit (actual: 5000). If you need only one file, pass ``-i`` as optional parameter (e.g. ``$./step1.py -i path/source.tex``). 
 
-2. Feed files ``<source_*.txt>`` to Google Translate and merge them to obtain ``<translation.txt>``.
+2. Feed files ``<source_*.txt>`` to Google Translate or DeepL. I suggest to use DeepL desktop app to speed up the work. 
 
-3. Run ``$./from.py <translation.txt>`` to produce ``<translation.tex>``.
+3. Run ``$./step2.py <source>`` to produce ``<sourceT9N.tex>``. It looks in your folder to find all files that start like ``source_``. This code removes the italian advertisement message of DeepL too (for now). 
 
-4. Check for the corrupted tokens. If needed, edit manually ``<translation.txt>`` and run step 3 again. 
+4. Check for the corrupted tokens. You should be able to substitute them manually by looking at ``gtexfix_commands.json``. 
 
 **Example**
 
 Sample LaTeX input is give in the ``examples`` folder. 
 
-Step 1. Run ``to.py``:
+Step 1. Run ``python step1.py examples/example``:
  
-	$ ./to.py examples/example.tex
-	LaTeX file: examples/example.tex
-	No token conflicts detected. Proceeding.
-	Output file: examples/example_0.txt
-	Supply the output file(s) to Google Translate
+	$ python step1.py examples/example
+    LaTeX file: examples\example.tex
+    No token conflicts detected. Proceeding.
+    Output file: examples\example_00.txt
+    Output file: examples\example_01.txt
+    Output file: examples\example_02.txt
+    Supply the output file(s) to Google Translate
 
-Step 2. Google Translate -> Choose document "example_0.txt". Save the output page as a txt document (e.g. ``translation.txt``).
+Step 2. Google Translate or DeepL.
 
-Step 3. Run ``from.py``:
+Step 3. Run ``python step2.py examples/example``:
 
-	$ ./from.py examples/translation.txt 
-    Input file: examples/translation.txt
-    Output file: examples/translation.tex
-    Corrupted tokens detected: [1.57] 
-    To improve the output manually change the corrupted tokens in file examples/translation.txt and run from.py again.
-
-Step 4. In a text editor fix the corrupted token [1.57] in ``translation.txt``. Run from.py again:
-
-	$ ./from.py examples/translation.txt 
-    Input file: examples/translation.txt
-    Output file: examples/translation.tex
+	$ python step2.py examples/example
+    Input file (original): examples/example
+    I found these files:
+    ['examples\\example_00.txt', 'examples\\example_01.txt', 'examples\\example_02.txt']
+    Backup file not found
+    Output file: examples/exampleT9N.tex
     No corrupted tokens. The translation is ready.
 
-**Alternatives**
+Step 4. 
 
-There is an alternative tool GoogleTranslate4LyX (https://wiki.lyx.org/Tools/GoogleTranslate4LyX) which converts LaTeX to HTML and uses ``<span class="notranslate">`` tag instead of tokens to pass the Google Translate safely. However, it does not treat math formulas.
-
-**Possibilities for extension**
-
-The token numbers can be unpredictably changed by Google Translate: e.g. 396 in the original can become 369 after translation for no apparent reason. Although, the corrupted tokens are reported, the ``notranslate`` tags in HTML could in principle give a more stable solution than the use of tokens.
 
